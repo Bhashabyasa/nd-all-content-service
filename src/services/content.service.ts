@@ -32,10 +32,10 @@ export class contentService {
     return await this.content.countDocuments().exec();
   }
 
-  async readById(id): Promise<content> {
-    return await this.content.findById(id).exec();
+  async readById(id:any): Promise<content> {
+    return await this.content.findOne({ contentId: id }).exec();
   }
-
+  
   async update(id, content: content): Promise<content> {
     return await this.content.findByIdAndUpdate(id, content, { new: true });
   }
@@ -62,6 +62,9 @@ export class contentService {
           "contentSourceData.text": 1,
           "contentSourceData.phonemes": 1,
           "contentSourceData.syllableCount": 1,
+          "contentSourceData.hallucination_alternative": 1,
+          "mechanics_data":1,
+          "contentIndex":1
         }
       },
       {
@@ -69,6 +72,9 @@ export class contentService {
       },
       {
         $limit: limitValue
+      },
+      {
+        $sort: { contentIndex: 1 }
       }
     ]).exec();
     return {
@@ -2024,5 +2030,4 @@ export class contentService {
 
     return { wordsArr: wordsArr };
   }
-  
 }

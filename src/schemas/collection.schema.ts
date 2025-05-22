@@ -1,11 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, now } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
-import { IsOptional, IsString } from 'class-validator';
+import { IsObject, IsOptional, IsString } from 'class-validator';
 
 @Schema({ collection: 'collection' })
 export class collection {
-  @Prop({ default: uuidv4, index:true})
+  @Prop({ default: uuidv4, index: true })
   collectionId: string;
 
   @Prop({ type: String, required: true })
@@ -41,7 +41,7 @@ export class collection {
   @IsString()
   imagePath: string;
 
-  @Prop({ type: String, required: true, index:true })
+  @Prop({ type: String, required: true, index: true })
   @IsString()
   language: string;
 
@@ -84,10 +84,18 @@ export class collection {
   @IsString()
   reviewStatus: string;
 
+  @Prop({ type: Object, required: false })
+  @IsOptional()
+  @IsObject()
+  level_complexity: {
+    level: string;
+    level_competency: string;
+  };
+
   @Prop({ required: true })
   tags: [string];
 
-  @Prop({ default: now(), index:true })
+  @Prop({ default: now(), index: true })
   createdAt: Date;
 
   @Prop({ default: now() })
@@ -97,3 +105,5 @@ export class collection {
 export type collectionDocument = collection & Document;
 
 export const collectionDbSchema = SchemaFactory.createForClass(collection);
+
+collectionDbSchema.index({ tags: 1, language: 1 });
