@@ -332,8 +332,10 @@ export class contentService {
     complexityLevel,
     graphemesMappedObj,
     level_competency = [],
+    CEFR_level = [],
   ): Promise<any> {
     let nextTokenArr = [];
+    let readingComplexityLang = ['hi'];
     if (tokenArr.length >= limit * 2) {
       nextTokenArr = tokenArr.slice(limit, limit * 2);
     } else {
@@ -348,7 +350,9 @@ export class contentService {
       let contentQueryParam = [];
       let complexityQueryParam = [];
       let contentLevel = common_config.contentLevel;
-      let complexity = common_config.complexity;
+      let complexity = readingComplexityLang.includes(language)
+        ? common_config.readingComplexity
+        : common_config.complexity;
 
       if (cLevel != '' || complexityLevel.length != 0) {
         if (cLevel != 'L1') {
@@ -388,13 +392,20 @@ export class contentService {
           delete complexityQueryParamEle.level;
           delete complexityQueryParamEle.contentType;
           delete complexityQueryParamEle.language;
-          mileStoneQuery.push({
-            totalPhonicComplexity:
-              complexityQueryParamEle.totalPhonicComplexity,
-          });
-          mileStoneQuery.push({
-            totalOrthoComplexity: complexityQueryParamEle.totalOrthoComplexity,
-          });
+          if (readingComplexityLang.includes(language)) {
+            mileStoneQuery.push({
+              readingComplexity: complexityQueryParamEle.readingComplexity,
+            });
+          } else {
+            mileStoneQuery.push({
+              totalPhonicComplexity:
+                complexityQueryParamEle.totalPhonicComplexity,
+            });
+            mileStoneQuery.push({
+              totalOrthoComplexity:
+                complexityQueryParamEle.totalOrthoComplexity,
+            });
+          }
         }
       }
 
@@ -1110,6 +1121,9 @@ export class contentService {
         query['level_complexity.level_competency'] = { $in: level_competency };
       }
 
+      if (CEFR_level?.length > 0) {
+        query['level_complexity.CEFR_level'] = { $in: CEFR_level };
+      }
       const allTokenGraphemes = [];
 
       let contentData = [];
@@ -1323,6 +1337,9 @@ export class contentService {
           },
           contentType: contentType,
           'level_complexity.level_competency': { $in: level_competency },
+          ...(CEFR_level.length > 0 && {
+            'level_complexity.CEFR_level': { $in: CEFR_level },
+          }),
         };
 
         randomContentQuery.contentSourceData.$elemMatch['language'] =
@@ -1947,6 +1964,7 @@ export class contentService {
     language,
     levelCompetencyArr,
     tags,
+    CEFR_level = [],
   ) {
     let queries = [];
     const numLevels = levelCompetencyArr.length;
@@ -1971,6 +1989,9 @@ export class contentService {
                       },
                     },
                     'level_complexity.level_competency': levelCompetency,
+                    ...(CEFR_level.length > 0 && {
+                      'level_complexity.CEFR_level': { $in: CEFR_level },
+                    }),
                     tags: { $all: tags },
                   },
                 },
@@ -1991,6 +2012,9 @@ export class contentService {
                       },
                     },
                     'level_complexity.level_competency': levelCompetency,
+                    ...(CEFR_level.length > 0 && {
+                      'level_complexity.CEFR_level': { $in: CEFR_level },
+                    }),
                   },
                 },
                 { $sample: { size: splitLimit } }, // Fetch for the first level
@@ -2014,6 +2038,9 @@ export class contentService {
                       },
                     },
                     'level_complexity.level_competency': levelCompetency,
+                    ...(CEFR_level.length > 0 && {
+                      'level_complexity.CEFR_level': { $in: CEFR_level },
+                    }),
                     tags: { $all: tags },
                   },
                 },
@@ -2034,6 +2061,9 @@ export class contentService {
                       },
                     },
                     'level_complexity.level_competency': levelCompetency,
+                    ...(CEFR_level.length > 0 && {
+                      'level_complexity.CEFR_level': { $in: CEFR_level },
+                    }),
                   },
                 },
                 { $sample: { size: splitLimit - handleLimit } }, // Fetch fewer items for other levels
@@ -2073,6 +2103,9 @@ export class contentService {
                 $elemMatch: { mechanics_id: mechanics_id, language: language },
               },
               'level_complexity.level_competency': { $exists: true },
+              ...(CEFR_level.length > 0 && {
+                'level_complexity.CEFR_level': { $in: CEFR_level },
+              }),
               tags: { $all: tags },
             },
           },
@@ -2088,6 +2121,9 @@ export class contentService {
                 $elemMatch: { mechanics_id: mechanics_id, language: language },
               },
               'level_complexity.level_competency': { $exists: true },
+              ...(CEFR_level.length > 0 && {
+                'level_complexity.CEFR_level': { $in: CEFR_level },
+              }),
             },
           },
           { $sample: { size: remainingLimit } },
